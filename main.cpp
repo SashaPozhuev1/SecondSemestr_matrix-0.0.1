@@ -188,8 +188,6 @@ int main()
 			}
 			streamB.close();
 			streamR.close();
-			B.~matrix_t();
-			R.~matrix_t();
 		}
 		else if (symb == 'T') {
 			matrix_t R;
@@ -200,7 +198,6 @@ int main()
 			R.write(streamR, fileNameR);
 
 			streamR.close();
-			R.~matrix_t();
 		}
 		else {
 			A.error();
@@ -211,7 +208,6 @@ int main()
 	}
 	
 	streamA.close();
-	A.~matrix_t();
 	std::cin.get();
     return 0;
 }
