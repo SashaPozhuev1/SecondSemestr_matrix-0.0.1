@@ -4,69 +4,112 @@
 
 class matrix_t{
 private:
-	int ** data;
-	unsigned int rows;
-	unsigned int collumns;
+	int ** data_;
+	unsigned int rows_;
+	unsigned int collumns_;
 
 public:
 	matrix_t() {
-		data = nullptr;
-		rows = 0;
-		collumns = 0;
+		data_ = nullptr;
+		rows_ = 0;
+		collumns_ = 0;
 	}
 
-	matrix_t add(matrix_t & other) const {
-		if (this->rows == other.rows &&
-			this->collumns == other.collumns) {
-			for (int i = 0; i < this->rows; ++i) {
-				for (int j = 0; j < this->collumns; ++j) {
-					other.data[i][j] = this->data[i][j] + other.data[i][j];
+	matrix_t(matrix_t const & matrix) {
+		rows_ = matrix.rows_;
+		collumns_ = matrix.collumns_;
+
+		data_ = new int *[rows_];
+		for (unsigned int i = 0; i < rows_; ++i) {
+			data_[i] = new int[collumns_];
+			for (unsigned int j = 0; j < collumns_; ++j) {
+				data_[i][j] = matrix.data_[i][j];
+			}
+		}
+	}
+
+	matrix_t & operator = (matrix_t const & matrix) {
+		if (this != &matrix) {
+			for (unsigned int i = 0; i < rows_; ++i) {
+				delete[] data_[i];
+			}
+			delete[] data_;
+
+			rows_ = matrix.rows_;
+			collumns_ = matrix.collumns_;
+			data_ = new int *[rows_];
+			for (unsigned int i = 0; i < rows_; ++i) {
+				data_[i] = new int[collumns_];
+			}
+			for (unsigned int i = 0; i < rows_; ++i) {
+				for (unsigned int j = 0; j < collumns_; ++j) {
+					data_[i][j] = matrix.data_[i][j];
 				}
 			}
 		}
-		else {
-			error();
-		}
 
-		return other;
+		return *this;
 	}
 
-	matrix_t sub(matrix_t & other) const {
-		if (this->rows == other.rows &&
-			this->collumns == other.collumns) {
-			for (int i = 0; i < this->rows; ++i) {
-				for (int j = 0; j < this->collumns; ++j) {
-					other.data[i][j] = this->data[i][j] - other.data[i][j];
+	matrix_t add(matrix_t const & other) const {
+
+		if (rows_ == other.rows_ &&
+			collumns_ == other.collumns_) {
+
+			matrix_t result(other);
+
+			for (unsigned int i = 0; i < rows_; ++i) {
+				for (unsigned int j = 0; j < collumns_; ++j) {
+					result.data_[i][j] = data_[i][j] + other.data_[i][j];
 				}
 			}
+			return result;
 		}
 		else {
 			error();
+			exit(0);
 		}
-
-		return other;
 	}
 
-	matrix_t mul(matrix_t & other) const {
+	matrix_t sub(matrix_t const & other) const {
+		if (rows_ == other.rows_ &&
+			collumns_ == other.collumns_) {
+
+			matrix_t result(other);
+
+			for (unsigned int i = 0; i < rows_; ++i) {
+				for (unsigned int j = 0; j < collumns_; ++j) {
+					result.data_[i][j] = data_[i][j] - other.data_[i][j];
+				}
+			}
+			return result;
+		}
+		else {
+			error();
+			exit(0);
+		}
+	}
+
+	matrix_t mul(matrix_t const & other) const {
 		matrix_t result;
 
-		if (this->collumns == other.rows) {
-			result.rows = this->rows;
-			result.collumns = other.collumns;
+		if (collumns_ == other.rows_) {
+			result.rows_ = rows_;
+			result.collumns_ = other.collumns_;
 			
-			result.data = new int *[this->rows];
-			for (int i = 0; i < this->rows; ++i) {
-				result.data[i] = new int[other.collumns];
+			result.data_ = new int *[rows_];
+			for (int i = 0; i < rows_; ++i) {
+				result.data_[i] = new int[other.collumns_];
 			}
 
 
-			for (int i = 0; i < this->rows; ++i) {
-				for (int j = 0; j < other.collumns; ++j) {
+			for (int i = 0; i < rows_; ++i) {
+				for (int j = 0; j < other.collumns_; ++j) {
 					int summ = 0;
-					for (int k = 0; k < other.rows; ++k) {
-						summ += this->data[i][k] * other.data[k][j];
+					for (int k = 0; k < other.rows_; ++k) {
+						summ += data_[i][k] * other.data_[k][j];
 					}
-					result.data[i][j] = summ;
+					result.data_[i][j] = summ;
 				}
 			}
 		}
@@ -74,39 +117,40 @@ public:
 			error();
 		}
 
-		result.~matrix_t();
 		return result;
 	}
 
-	matrix_t trans(matrix_t & other) const {
-		other.rows = this->collumns;
-		other.collumns = this->rows;
-		other.data = new int *[other.rows];
-		for (int i = 0; i < this->collumns; ++i) {
-			other.data[i] = new int [other.collumns];
+	matrix_t trans() const {
+		matrix_t result;
+
+		result.collumns_ = rows_;
+		result.rows_ = collumns_;
+		result.data_ = new int *[result.rows_];
+		for (unsigned int i = 0; i < collumns_; ++i) {
+			result.data_[i] = new int [result.collumns_];
 		}
 
-		for (int i = 0; i < other.rows; ++i) {
-			for (int j = 0; j < other.collumns; ++j) {
-				other.data[i][j] = this->data[j][i];
+		for (unsigned int i = 0; i < result.rows_; ++i) {
+			for (int unsigned j = 0; j < result.collumns_; ++j) {
+				result.data_[i][j] = data_[j][i];
 			}
 		}
-		return other;
+		return result;
 	}
 
-	std::ifstream & read( std::ifstream & stream, std::string fileName ) {
+	std::ifstream & read( std::ifstream & stream, const std::string fileName ) {
 		stream.open(fileName.c_str());
 
 		char symb;
 		if (stream.is_open() &&
-			stream >> rows &&
+			stream >> rows_ &&
 			stream >> symb && symb == ',' &&
-			stream >> collumns) {
-			data = new int *[rows];
-			for (int i = 0; i < rows; ++i) {
-				data[i] = new int[collumns];
-				for (int j = 0; j < collumns; ++j) {
-					stream >> data[i][j];
+			stream >> collumns_) {
+			data_ = new int *[rows_];
+			for (unsigned int i = 0; i < rows_; ++i) {
+				data_[i] = new int[collumns_];
+				for (unsigned int j = 0; j < collumns_; ++j) {
+					stream >> data_[i][j];
 				}
 			}
 		}
@@ -116,14 +160,14 @@ public:
 		return stream;
 	}
 
-	std::ofstream & write( std::ofstream & stream, std::string fileName ) const {
+	std::ofstream & write( std::ofstream & stream, const std::string fileName ) const {
 		stream.open(fileName.c_str());
 
 		if (stream.is_open()) {
-			for (int i = 0; i < this->rows; ++i) {
-				for (int j = 0; j < this->collumns; ++j) {
-					stream << this->data[i][j] << '\t';
-					if (j == this->collumns - 1) {
+			for (unsigned int i = 0; i < rows_; ++i) {
+				for (unsigned int j = 0; j < collumns_; ++j) {
+					stream << data_[i][j] << '\t';
+					if (j == collumns_ - 1) {
 						stream << '\n';
 					}
 				}
@@ -136,11 +180,14 @@ public:
 	}
 
 	void error() const {
-		std::cout << "An error has occured while reading input data\n";
+		std::cout << "An error has occured while reading input data__\n";
 	}
 
 	~matrix_t() {
-
+		for (unsigned int i = 0; i < rows_; ++i) {
+			delete[] data_[i];
+		}
+		delete[] data_;
 	}
 };
 
@@ -170,15 +217,16 @@ int main()
 			std::ofstream streamR;
 
 			if (B.read(streamB, fileNameB)) {
+	             
 				if (symb == '+') {
 					R = A.add(B);
 					R.write(streamR, fileNameR);
 				}
-				else if (symb == '-') {
+			else if (symb == '-') {
 					R = A.sub(B);
 					R.write(streamR, fileNameR);
 				}
-				else if (symb == '*') {
+			else if (symb == '*') {
 					R = A.mul(B);
 					R.write(streamR, fileNameR);
 				}
@@ -194,7 +242,7 @@ int main()
 			std::string fileNameR = "result.txt";
 			std::ofstream streamR;
 			
-			R = A.trans(R);
+			R = A.trans();
 			R.write(streamR, fileNameR);
 
 			streamR.close();
